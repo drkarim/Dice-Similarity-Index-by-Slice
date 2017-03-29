@@ -1,55 +1,19 @@
-#define HAS_VTK 1
-#define _IS_DEBUG 1
+#include "mirtk/Common.h"
+#include "mirtk/Options.h"
+#include "mirtk/IOConfig.h"
+#include "mirtk/GenericImage.h"
 
-#include "vtkPointData.h"
-#include <vtkPointPicker.h>
-#include <vtkCommand.h>
-#include <vtkMarchingCubes.h>
-#include <vtkContourFilter.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkCamera.h>
-#include <vtkMarchingCubes.h>
-#include <vtkVectorNorm.h>
-#include <vtkDataSetMapper.h>
-#include <vtkImageToPolyDataFilter.h>
-#include <vtkPolyDataReader.h>
-#include <vtkLookupTable.h>
-#include <vtkSphereSource.h>
-#include <vtkCallbackCommand.h>
-#include <vtkProperty.h>
-#include <vtkImagePlaneWidget.h>
-#include <vtkImageActor.h>
-#include <vtkSmartPointer.h>
-#include <vtkCellArray.h>
-#include <vtkPolyDataWriter.h>
-#include <vtkCellData.h>
-#include <vtkPolyDataReader.h>
-#include <vtkIterativeClosestPointTransform.h>
-#include <vtkLandmarkTransform.h>
-#include <vtkMath.h>
-#include <vtkMatrix4x4.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkMaskPoints.h>
+using namespace mirtk;
 
-#include <irtkImage.h>
-#include <irtkEuclideanDistanceTransform.h>
+Array<double> i_ctr; 
 
-#include <stdio.h>    // to get "printf" function
-#include <stdlib.h>   // to get "free" function
-
-vector<double> i_ctr; 
-
-void GetSlice(irtkGreyImage* img1, irtkGreyImage& img_crop, int in_x, int in_y, int in_z)
+void GetSlice(GreyImage* img1, GreyImage& img_crop, int in_x, int in_y, int in_z)
 {
 	int maxX, maxY, maxZ;
 	maxX = img1->GetX(); 
 	maxY = img1->GetY(); 
 	maxZ = img1->GetZ(); 
 	int n=0;
-
-	//irtkGreyImage img_crop; 
-	
 
 	if (in_x > 0 || in_y > 0 || in_z > 0) 
 	{
@@ -66,11 +30,9 @@ void GetSlice(irtkGreyImage* img1, irtkGreyImage& img_crop, int in_x, int in_y, 
 			img_crop = img1->GetRegion(0, 0,in_z, maxX, maxY, in_z+1);
 		}
 	}
-
-	
 }
 
-void GetSliceDice(irtkGreyImage* img1_slice, irtkGreyImage* img2_slice, double& sorensen_dice)
+void GetSliceDice(GreyImage* img1_slice, GreyImage* img2_slice, double& sorensen_dice)
 {
 	int maxX, maxY, maxZ; 
 	double tot_img1=0, tot_img2=0, tot_img1_and_img2=0; 
@@ -133,7 +95,7 @@ double getStats(int measure, double mean)
 
 
 
-void ComputeSliceDiceForImages(irtkGreyImage* img1, irtkGreyImage* img2, ofstream& fileIO, char* appendTxt, int x_y_z) 
+void ComputeSliceDiceForImages(GreyImage* img1, GreyImage* img2, ofstream& fileIO, char* appendTxt, int x_y_z) 
 {
 	int maxX, maxY, maxZ; 
 	
@@ -144,7 +106,7 @@ void ComputeSliceDiceForImages(irtkGreyImage* img1, irtkGreyImage* img2, ofstrea
 	
 	//vector<double> total_errors; 
 
-	irtkGreyImage img1_crop, img2_crop; 
+	GreyImage img1_crop, img2_crop; 
 
 
 	if (x_y_z == 1) 
@@ -211,9 +173,9 @@ void ComputeSliceDiceForImages(irtkGreyImage* img1, irtkGreyImage* img2, ofstrea
 }
 
 
-void Binarize(irtkRealImage* at_wall)
+void Binarize(RealImage* at_wall)
 {
-	irtkRealPixel *p; 
+	RealPixel *p; 
 	p = at_wall->GetPointerToVoxels(); 
 	for (int i=0;i<at_wall->GetNumberOfVoxels();i++)
 	{
@@ -231,7 +193,7 @@ int main(int argc, char **argv)
 {
 	int optind;
 	bool foundArgs=false;
-	irtkGreyImage img1, img2;
+	//GreyImage img1, img2;
 	int x_y_z=1;			
 	
 	char* input_f1="", *input_f2="", *output_f="", *appendTxt="";
@@ -299,11 +261,20 @@ int main(int argc, char **argv)
 
 	else
 	{
+		InitializeIOLibrary();
+		//GreyImage img1(input_f1);
+		//GreyImage img2(input_f2); 
+
+		UniquePtr<BaseImage> img1(BaseImage::New(input_f1));
+		UniquePtr<BaseImage> img2(BaseImage::New(input_f2));
+
+
+		/*
 		img1.Read(input_f1); 
-		img2.Read(input_f2);
+		img2.Read(input_f2);*/
 
 		// check images are same size 
-		if (!(img1.GetX() == img2.GetX() && img1.GetY() == img2.GetY() && img1.GetZ() == img2.GetZ()))
+		if (!(img1->GetX() == img2->GetX() && img1->GetY() == img2->GetY() && img1->GetZ() == img2->GetZ()))
 		{
 			cout << "Image size mismatch, images need to be of equal dimensions! " << endl; 
 			exit(0); 
@@ -312,7 +283,7 @@ int main(int argc, char **argv)
 		ofstream fileIO; 
 		fileIO.open(output_f, std::ios_base::app); 
 		
-		ComputeSliceDiceForImages(&img1, &img2, fileIO, appendTxt,  x_y_z);
+		ComputeSliceDiceForImages(new GenericImage<short>(*img1), new GenericImage<short>(*img2), fileIO, appendTxt,  x_y_z);
 		fileIO.close();
 	}
 

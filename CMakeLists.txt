@@ -1,32 +1,22 @@
-cmake_minimum_required(VERSION 2.8)
- 
-project(slice_dice_MIRTK)
+# ============================================================================
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
 
-find_package(VTK REQUIRED)
-include(${VTK_USE_FILE})
+cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
-find_package(MIRTK REQUIRED)
+list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/config")
+if (NOT COMMAND mirtk_configure_module)
+  find_package(MIRTK REQUIRED COMPONENTS CMake)
+endif ()
 
-
- INCLUDE_DIRECTORIES(
-	"~/Documents/Code/third_party/mirtk/bin/include" 
-	"~/Documents/Code/third_party/mirtk/src/Modules/Common/include"
-	"~/Documents/Code/third_party/mirtk/src/Modules/Image/include"
-	"~/Documents/Code/third_party/mirtk/src/Modules/IO/include"
-	"~/Documents/Code/third_party/mirtk/src/Modules/Numerics/include"
-	"~/Documents/Code/third_party/mirtk/src/Modules/PointSet/include"
-	"~/Documents/Code/third_party/mirtk/src/Modules/Registration/include"
-	"~/Documents/Code/third_party/mirtk/src/Modules/Transformation/include"
-	"/usr/local/include/"
- )
-
- LINK_DIRECTORIES(
-	"~/Documents/Code/third_party/mirtk/bin/lib/"
-	"/usr/local/lib/"
-	"~/Documents/Code/third_party/zlib/src/"
- )
-
-add_executable(slice_dice_mirtk slice_dice_mirtk.cxx)
-
-target_link_libraries(slice_dice_mirtk ${VTK_LIBRARIES} LibCommon LibNumerics LibImage LibIO)
-
+mirtk_configure_module()
