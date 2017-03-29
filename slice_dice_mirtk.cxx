@@ -1,36 +1,3 @@
-#define HAS_VTK 1
-
-#include "vtkPointData.h"
-#include <vtkPointPicker.h>
-#include <vtkCommand.h>
-#include <vtkMarchingCubes.h>
-#include <vtkContourFilter.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkCamera.h>
-#include <vtkMarchingCubes.h>
-#include <vtkVectorNorm.h>
-#include <vtkDataSetMapper.h>
-#include <vtkImageToPolyDataFilter.h>
-#include <vtkPolyDataReader.h>
-#include <vtkLookupTable.h>
-#include <vtkSphereSource.h>
-#include <vtkCallbackCommand.h>
-#include <vtkProperty.h>
-#include <vtkImagePlaneWidget.h>
-#include <vtkImageActor.h>
-#include <vtkSmartPointer.h>
-#include <vtkCellArray.h>
-#include <vtkPolyDataWriter.h>
-#include <vtkCellData.h>
-#include <vtkPolyDataReader.h>
-#include <vtkIterativeClosestPointTransform.h>
-#include <vtkLandmarkTransform.h>
-#include <vtkMath.h>
-#include <vtkMatrix4x4.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkMaskPoints.h>
-
 //#include <irtkImage.h>
 //#include <irtkEuclideanDistanceTransform.h>
 
