@@ -21,7 +21,7 @@ The usage for the first tool ```evaluate-slice-dice``` if ``make`` installed und
 This program outputs the mean and standard deviation of dice in each slice along the specified X, Y, Z direction. 
 
 ## Other libraries 
-If you are interested in other statistical tests of  such as senstivity and specificity, (please refer to this library)[https://github.com/drkarim/Sensitivity-and-Specificity]
+If you are interested in other statistical tests of  such as senstivity and specificity, [please refer to this library](https://github.com/drkarim/Sensitivity-and-Specificity)
 
 
 ## Author 
