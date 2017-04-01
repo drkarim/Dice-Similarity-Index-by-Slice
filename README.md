@@ -16,7 +16,7 @@ The usage for the first tool ```evaluate-slice-dice``` if ``make`` installed und
      -i2 <img2> 
      -o <output dice txt> 
      -txt <append text> 
-     --x --y --z <along which direction>
+     --x --y --z <slice direction>
 ```
 This program outputs the mean and standard deviation of dice in each slice along the specified X, Y, Z direction. 
 
