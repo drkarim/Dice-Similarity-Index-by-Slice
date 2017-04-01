@@ -11,7 +11,12 @@ The dependencies are not great on MIRTK and IRTK. It is simply for accessing pix
 ## Usage 
 The usage for the first tool ```evaluate-slice-dice``` if ``make`` installed under mirtk ``/lib/tools/``:
 ```
-./mirtk evaluate-slice-dice -i1 <img1> -i2 <img2> -o <output dice txt> -txt <append text> --x --y --z <along which direction>
+./mirtk evaluate-slice-dice 
+     -i1 <img1> 
+     -i2 <img2> 
+     -o <output dice txt> 
+     -txt <append text> 
+     --x --y --z <along which direction>
 ```
 This program outputs the mean and standard deviation of dice in each slice along the specified X, Y, Z direction. 
 
