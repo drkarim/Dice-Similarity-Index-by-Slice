@@ -1,9 +1,7 @@
 # Dice Similarity Index for 3D medical image slices
-Finds the [Sorensen dice](http://en.wikipedia.org/wiki/Sørensen–Dice_coefficient) of two 3D (medical) image binary masks. 
+Finds the [Sorensen dice](http://en.wikipedia.org/wiki/Sørensen–Dice_coefficient) of two 3D (medical) image binary masks. The Dice is computed on a slice-by-slice basis, giving a mean dice for each slice. Often, the overall Dice is somtimes not very objective, and one requires a slightly more specific means of measuring ovelap. 
 
 The slices can be defined by the user using the --x, --y or, --z switches
-
-However, it requires post-processing for finalising the atrial wall segmentation. The following repository contains two separate tools that accomplish these post-processing tasks. 
 
 ## Dependencies
 Note that this program uses [MIRTK - Medical Image Registration Library](https://github.com/BioMedIA/MIRTK), an old legacy version in [IRTK](https://wwwhomes.doc.ic.ac.uk/~rkarim/mediawiki/index.php?title=Sense_Dice_Code_Ver_2) exists but is not maintained anymore. 
@@ -17,6 +15,8 @@ The usage for the first tool ```evaluate-slice-dice``` if ``make`` installed und
 ```
 This program outputs the mean and standard deviation of dice in each slice along the specified X, Y, Z direction. 
 
+## Other libraries 
+If you are interested in other statistical tests of  such as senstivity and specificity, (please refer to this library)[https://github.com/drkarim/Sensitivity-and-Specificity]
 
 
 ## Author 
