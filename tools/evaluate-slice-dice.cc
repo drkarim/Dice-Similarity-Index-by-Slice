@@ -6,8 +6,8 @@
 using namespace mirtk;
 
 Array<double> i_ctr; 
-Array<double> i_true_pos_truth; 
-Array<double> i_true_pos_test; 
+Array<double> i_pos_truth; 
+Array<double> i_pos_test; 
 
 void GetSlice(GreyImage* img1, GreyImage& img_crop, int in_x, int in_y, int in_z)
 {
@@ -34,6 +34,12 @@ void GetSlice(GreyImage* img1, GreyImage& img_crop, int in_x, int in_y, int in_z
 	}
 }
 
+// Return options: 
+// Dice - F1 Dice measure 
+// Sens - Sensitivity 
+// Spec - Specificity 
+// tpg - positive in ground truth 
+// tpt - positive in truth
 void GetSliceDice(GreyImage* img1_slice, GreyImage* img2_slice, char* which_measure, double& output)
 {
 	int maxX, maxY, maxZ; 
@@ -87,7 +93,7 @@ void GetSliceDice(GreyImage* img1_slice, GreyImage* img2_slice, char* which_meas
 	sens = (tot_img1_and_img2/(tot_img1_and_img2+false_neg))*100; 
 	spec = (true_neg/(true_neg+false_pos))*100; 
 
-	char options[][5] = {"dice", "sens", "spec", "tpg", "tpt"};
+	char options[][5] = {"dice", "sens", "spec", "tpg", "tpt"};	
 
 	if (strcmp(options[0], which_measure) == 0)
 	{
@@ -146,7 +152,7 @@ void ComputeSliceDiceForImages(GreyImage* img1, GreyImage* img2, ofstream& fileI
 {
 	int maxX, maxY, maxZ; 
 	
-	double total_error, mean, std, dice_sens_spec, true_pos_truth, true_pos_test; 
+	double total_error, mean, std, dice_sens_spec, post_truth, pos_test; 
 	maxX = img1->GetX(); 
 	maxY = img1->GetY(); 
 	maxZ = img1->GetZ(); 
@@ -166,12 +172,12 @@ void ComputeSliceDiceForImages(GreyImage* img1, GreyImage* img2, ofstream& fileI
 			
 			GetSliceDice(&img1_crop, &img2_crop, which_measure, dice_sens_spec); 
 			
-			GetSliceDice(&img1_crop, &img2_crop, "tpg", true_pos_truth); 
-			GetSliceDice(&img1_crop, &img2_crop, "tpt", true_pos_test); 
+			GetSliceDice(&img1_crop, &img2_crop, "tpg", post_truth); 
+			GetSliceDice(&img1_crop, &img2_crop, "tpt", pos_test); 
 			
 			if (dice_sens_spec >= 0 && dice_sens_spec <= 100) {
-				i_true_pos_truth.push_back(true_pos_truth);
-				i_true_pos_test.push_back(true_pos_test);
+				i_pos_truth.push_back(post_truth);
+				i_pos_test.push_back(pos_test);
 				i_ctr.push_back(dice_sens_spec); 
 			}
 			
@@ -190,12 +196,12 @@ void ComputeSliceDiceForImages(GreyImage* img1, GreyImage* img2, ofstream& fileI
 			GetSlice(img2, img2_crop, 0, y, 0);
 				
 			GetSliceDice(&img1_crop, &img2_crop, which_measure, dice_sens_spec);
-			GetSliceDice(&img1_crop, &img2_crop, "tpg", true_pos_truth); 
-			GetSliceDice(&img1_crop, &img2_crop, "tpt", true_pos_test); 
+			GetSliceDice(&img1_crop, &img2_crop, "tpg", post_truth); 
+			GetSliceDice(&img1_crop, &img2_crop, "tpt", pos_test); 
 			
 			if (dice_sens_spec >= 0 && dice_sens_spec <= 100) {
-				i_true_pos_truth.push_back(true_pos_truth);
-				i_true_pos_test.push_back(true_pos_test);
+				i_pos_truth.push_back(post_truth);
+				i_pos_test.push_back(pos_test);
 				i_ctr.push_back(dice_sens_spec); 
 			}
 			
@@ -215,13 +221,13 @@ void ComputeSliceDiceForImages(GreyImage* img1, GreyImage* img2, ofstream& fileI
 			GetSlice(img2, img2_crop, 0, 0, z);
 
 			GetSliceDice(&img1_crop, &img2_crop, which_measure, dice_sens_spec); 
-			GetSliceDice(&img1_crop, &img2_crop, "tpg", true_pos_truth); 
-			GetSliceDice(&img1_crop, &img2_crop, "tpt", true_pos_test); 
+			GetSliceDice(&img1_crop, &img2_crop, "tpg", post_truth); 
+			GetSliceDice(&img1_crop, &img2_crop, "tpt", pos_test); 
 			
 			
 			if (dice_sens_spec >= 0 && dice_sens_spec <= 100) {
-				i_true_pos_truth.push_back(true_pos_truth);
-				i_true_pos_test.push_back(true_pos_test);
+				i_pos_truth.push_back(post_truth);
+				i_pos_test.push_back(pos_test);
 				i_ctr.push_back(dice_sens_spec); 
 			}
 			   
@@ -235,10 +241,10 @@ void ComputeSliceDiceForImages(GreyImage* img1, GreyImage* img2, ofstream& fileI
 	std = getStats(2, mean); 
 	//fileIO << std::setprecision(4) << appendTxt << "\t" << mean << "\t" << std << endl; 
 
-	fileIO << "True_pos_truth,true_pos_test,dice-F1\n";
+	fileIO << "post_truth,pos_test,dice-F1\n";
 	for (int i=0;i<i_ctr.size();i++)
 	{
-		fileIO << std::setprecision(4) << i_true_pos_truth[i] << "," << i_true_pos_test[i] << "," << i_ctr[i] << endl;
+		fileIO << std::setprecision(4) << i_pos_truth[i] << "," << i_pos_test[i] << "," << i_ctr[i] << endl;
 	}
 
 }
