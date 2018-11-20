@@ -20,6 +20,19 @@ The usage for the first tool ```evaluate-slice-dice``` if ``make`` installed und
 ```
 This program outputs the mean and standard deviation of dice in each slice along the specified X, Y, Z direction. 
 
+If the ```-o``` option is used, a CSV file is written containing the following output: 
+```
+post_truth, post_test, Dice-F1
+47,24,67.61
+31,20,78.43
+112,112,100
+475,437,95.83
+484,184,55.09
+340,158,63.45
+```
+The first column ```post_truth``` is the number of positive voxels in the truth image included with switch ```-i1```. The second column ```post_test``` is the number of positive voxels in thetest image. The final columnn ```Dice-F1``` is the Dice F1 score between 0-100, where 100 is perfect overlap. 
+
+
 ## Other libraries 
 If you are interested in other statistical tests of  such as senstivity and specificity, [please refer to this library](https://github.com/drkarim/Sensitivity-and-Specificity)
 
