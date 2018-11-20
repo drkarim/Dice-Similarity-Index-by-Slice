@@ -6,6 +6,8 @@
 using namespace mirtk;
 
 Array<double> i_ctr; 
+Array<double> i_true_pos_truth; 
+Array<double> i_true_pos_test; 
 
 void GetSlice(GreyImage* img1, GreyImage& img_crop, int in_x, int in_y, int in_z)
 {
@@ -32,29 +34,43 @@ void GetSlice(GreyImage* img1, GreyImage& img_crop, int in_x, int in_y, int in_z
 	}
 }
 
-void GetSliceDice(GreyImage* img1_slice, GreyImage* img2_slice, double& sorensen_dice)
+void GetSliceDice(GreyImage* img1_slice, GreyImage* img2_slice, char* which_measure, double& output)
 {
 	int maxX, maxY, maxZ; 
-	double tot_img1=0, tot_img2=0, tot_img1_and_img2=0; 
+	double tot_img1=0, tot_img2=0, tot_img1_and_img2=0, false_pos=0, false_neg=0, true_neg=0; 
 	
 	maxX = img1_slice->GetX(); 
 	maxY = img1_slice->GetY(); 
 	maxZ = img1_slice->GetZ(); 
 
-	sorensen_dice = 0; 
+	double sorensen_dice = 0,sens, spec; 
 	for (int x=0;x<maxX;x++) 
 	{
 		for (int y=0;y<maxY;y++)
 		{
 			for (int z=0;z<maxZ;z++) 
 			{
-				if (img1_slice->Get(x,y,z) > 0) 
+				if (img1_slice->Get(x,y,z) > 0) // ground truth is positive 
 				{
 					tot_img1++; 
-					if (img2_slice->Get(x,y,z) > 0) 
+					if (img2_slice->Get(x,y,z) > 0) 	// test is also positive 
 					{
-						tot_img1_and_img2++; 
+						tot_img1_and_img2++; 			
 					}
+					else {								// but, test is negative 
+						false_neg++;
+					}
+				}
+				else if (img1_slice->Get(x,y,z) <= 0)		// ground truth is negative 
+				{
+					if (img2_slice->Get(x,y,z) <= 0) 
+					{		
+						true_neg++;						// and test is also negative
+					}
+					else if (img2_slice->Get(x,y,z) > 0) 	// but, test is positive 
+					{
+						false_pos++; 			
+					}	
 				}
 
 				if (img2_slice->Get(x,y,z) > 0) 
@@ -67,6 +83,37 @@ void GetSliceDice(GreyImage* img1_slice, GreyImage* img2_slice, double& sorensen
 	}
 
 	sorensen_dice = 100*(2*tot_img1_and_img2)/(tot_img1+tot_img2); 
+	
+	sens = (tot_img1_and_img2/(tot_img1_and_img2+false_neg))*100; 
+	spec = (true_neg/(true_neg+false_pos))*100; 
+
+	char options[][5] = {"dice", "sens", "spec", "tpg", "tpt"};
+
+	if (strcmp(options[0], which_measure) == 0)
+	{
+			output = sorensen_dice; 
+	}
+	else if (strcmp(options[1], which_measure) == 0)
+	{
+			output = sens; 
+			
+	}
+	else if (strcmp(options[2], which_measure) == 0)
+	{
+			output = spec;
+			
+	}
+	else if (strcmp(options[3], which_measure) == 0)
+	{
+			output = tot_img1;
+			
+	}
+	else if (strcmp(options[4], which_measure) == 0)
+	{
+			output = tot_img2;
+			
+	}
+	
 	
 }
 double getStats(int measure, double mean)
@@ -95,11 +142,11 @@ double getStats(int measure, double mean)
 
 
 
-void ComputeSliceDiceForImages(GreyImage* img1, GreyImage* img2, ofstream& fileIO, char* appendTxt, int x_y_z) 
+void ComputeSliceDiceForImages(GreyImage* img1, GreyImage* img2, ofstream& fileIO, char* appendTxt, int x_y_z, char* which_measure) 
 {
 	int maxX, maxY, maxZ; 
 	
-	double total_error, mean, std, dice; 
+	double total_error, mean, std, dice_sens_spec, true_pos_truth, true_pos_test; 
 	maxX = img1->GetX(); 
 	maxY = img1->GetY(); 
 	maxZ = img1->GetZ(); 
@@ -117,10 +164,16 @@ void ComputeSliceDiceForImages(GreyImage* img1, GreyImage* img2, ofstream& fileI
 			GetSlice(img1, img1_crop, x, 0, 0);
 			GetSlice(img2, img2_crop, x, 0, 0);
 			
-			GetSliceDice(&img1_crop, &img2_crop, dice); 
+			GetSliceDice(&img1_crop, &img2_crop, which_measure, dice_sens_spec); 
 			
-			if (dice >= 0 && dice <= 100)
-				i_ctr.push_back(dice); 
+			GetSliceDice(&img1_crop, &img2_crop, "tpg", true_pos_truth); 
+			GetSliceDice(&img1_crop, &img2_crop, "tpt", true_pos_test); 
+			
+			if (dice_sens_spec >= 0 && dice_sens_spec <= 100) {
+				i_true_pos_truth.push_back(true_pos_truth);
+				i_true_pos_test.push_back(true_pos_test);
+				i_ctr.push_back(dice_sens_spec); 
+			}
 			
 			//fileIO << x << "\t" << dice << endl;  
 			//total_errors.push_back(total_error); 
@@ -136,9 +189,15 @@ void ComputeSliceDiceForImages(GreyImage* img1, GreyImage* img2, ofstream& fileI
 			GetSlice(img1, img1_crop, 0, y, 0);
 			GetSlice(img2, img2_crop, 0, y, 0);
 				
-			GetSliceDice(&img1_crop, &img2_crop, dice);
-			if (dice >= 0 && dice <= 100)
-				i_ctr.push_back(dice); 
+			GetSliceDice(&img1_crop, &img2_crop, which_measure, dice_sens_spec);
+			GetSliceDice(&img1_crop, &img2_crop, "tpg", true_pos_truth); 
+			GetSliceDice(&img1_crop, &img2_crop, "tpt", true_pos_test); 
+			
+			if (dice_sens_spec >= 0 && dice_sens_spec <= 100) {
+				i_true_pos_truth.push_back(true_pos_truth);
+				i_true_pos_test.push_back(true_pos_test);
+				i_ctr.push_back(dice_sens_spec); 
+			}
 			
 			//fileIO << y << "\t" << dice << endl;  
 			//total_errors.push_back(total_error); 
@@ -155,10 +214,16 @@ void ComputeSliceDiceForImages(GreyImage* img1, GreyImage* img2, ofstream& fileI
 			GetSlice(img1, img1_crop, 0, 0, z);
 			GetSlice(img2, img2_crop, 0, 0, z);
 
-			GetSliceDice(&img1_crop, &img2_crop, dice); 
+			GetSliceDice(&img1_crop, &img2_crop, which_measure, dice_sens_spec); 
+			GetSliceDice(&img1_crop, &img2_crop, "tpg", true_pos_truth); 
+			GetSliceDice(&img1_crop, &img2_crop, "tpt", true_pos_test); 
 			
-			if (dice >= 0 && dice <= 100)
-				i_ctr.push_back(dice); 
+			
+			if (dice_sens_spec >= 0 && dice_sens_spec <= 100) {
+				i_true_pos_truth.push_back(true_pos_truth);
+				i_true_pos_test.push_back(true_pos_test);
+				i_ctr.push_back(dice_sens_spec); 
+			}
 			   
 			//total_errors.push_back(total_error); 
 			
@@ -168,7 +233,13 @@ void ComputeSliceDiceForImages(GreyImage* img1, GreyImage* img2, ofstream& fileI
 	// compute mean and std
 	mean = getStats(1, -1);
 	std = getStats(2, mean); 
-	fileIO << std::setprecision(4) << appendTxt << "\t" << mean << "\t" << std << endl; 
+	//fileIO << std::setprecision(4) << appendTxt << "\t" << mean << "\t" << std << endl; 
+
+	fileIO << "True_pos_truth,true_pos_test,dice-F1\n";
+	for (int i=0;i<i_ctr.size();i++)
+	{
+		fileIO << std::setprecision(4) << i_true_pos_truth[i] << "," << i_true_pos_test[i] << "," << i_ctr[i] << endl;
+	}
 
 }
 
@@ -196,7 +267,7 @@ int main(int argc, char **argv)
 	//GreyImage img1, img2;
 	int x_y_z=1;			
 	
-	char* input_f1="", *input_f2="", *output_f="", *appendTxt="";
+	char* input_f1="", *input_f2="", *output_f="", *appendTxt="", *which_measure="dice";
 	double t1=1, mean, stdev, total_voxels, percent;
 
 	if (argc >= 1) 
@@ -247,6 +318,21 @@ int main(int argc, char **argv)
 				optind++;
 				appendTxt = argv[optind];
 			}
+			else if (sw == "--sens") 
+			{
+				which_measure = "sens";
+				cout << "\n\nOutuput Sensitivity"; 
+			}
+			else if (sw == "--spec") 
+			{
+				which_measure = "spec";
+				cout << "\n\nOutuput Specificity"; 
+			}
+			else if (sw == "--dice") 
+			{
+				which_measure = "dice";
+				cout << "\n\nOutput Dice"; 
+			}
 			
 			
 			optind++; 
@@ -255,7 +341,7 @@ int main(int argc, char **argv)
 	
 	if (foundArgs == false)
 	{
-		cout << "Usage: slicedice_mean.exe -i1 <img1> -i2 <img2> -o <output dice txt> -txt <append text to file> --x --y --z <along which direction> " << endl; 
+		cout << "\n\nUsage: slicedice_mean.exe \n\n\t-i1 <truth IMG> \n\t-i2 <test IMG> \n\t-o <output dice txt> \n\t-txt <append text to file> \n\nOther Options\n=============\n\t--x --y --z <along which direction>\n\t--dice --sens --spec <Dice, sensitivity and specificity measure>" << endl; 
 		exit(0); 
 	}
 
@@ -283,7 +369,7 @@ int main(int argc, char **argv)
 		ofstream fileIO; 
 		fileIO.open(output_f, std::ios_base::app); 
 		
-		ComputeSliceDiceForImages(new GenericImage<short>(*img1), new GenericImage<short>(*img2), fileIO, appendTxt,  x_y_z);
+		ComputeSliceDiceForImages(new GenericImage<short>(*img1), new GenericImage<short>(*img2), fileIO, appendTxt,  x_y_z, which_measure);
 		fileIO.close();
 	}
 
