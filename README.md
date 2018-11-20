@@ -30,7 +30,9 @@ post_truth, post_test, Dice-F1
 484,184,55.09
 340,158,63.45
 ```
-The first column ```post_truth``` is the number of positive voxels in the truth image included with switch ```-i1```. The second column ```post_test``` is the number of positive voxels in thetest image. The final columnn ```Dice-F1``` is the [Dice F1 score](https://en.wikipedia.org/wiki/F1_score) between 0-100, where 100 is perfect overlap. 
+The first column ```post_truth``` is the number of positive voxels in the truth image included with switch ```-i1```. 
+
+The second column ```post_test``` is the number of positive voxels in the test image. The final columnn ```Dice-F1``` is the [Dice F1 score](https://en.wikipedia.org/wiki/F1_score) between 0-100, where 100 is perfect overlap. 
 
 
 ## Other libraries 
